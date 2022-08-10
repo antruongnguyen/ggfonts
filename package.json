@@ -1,0 +1,34 @@
+{
+  "name": "gfonts",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "A CLI tool to search and install Google Fonts",
+  "main": "index.js",
+  "bin": {
+    "gfonts": "index.js"
+  },
+  "scripts": {
+    "test-update": "npx . update",
+    "test-config": "npx . config -k AN_INVALID_API_KEY",
+    "test-config-default": "npx . config",
+    "test-install": "npx . install rains",
+    "test-search": "npx . search fira",
+    "test": "npx .",
+    "postinstall": "gfonts -h"
+  },
+  "keywords": [
+    "font",
+    "google",
+    "fonts",
+    "google-fonts",
+    "command-line",
+    "cli"
+  ],
+  "author": "An Nguyen <annguyen.apps@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "adm-zip": "^0.5.9",
+    "commander": "^9.4.0",
+    "fuzzy-search": "^3.2.1"
+  }
+}
