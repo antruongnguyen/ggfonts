@@ -1,11 +1,11 @@
 {
-  "name": "gfonts",
+  "name": "ggfonts",
   "type": "module",
   "version": "1.0.0",
   "description": "A CLI tool to search and install Google Fonts",
   "main": "index.js",
   "bin": {
-    "gfonts": "index.js"
+    "ggfonts": "index.js"
   },
   "scripts": {
     "test-update": "npx . update",
@@ -14,7 +14,7 @@
     "test-install": "npx . install rains",
     "test-search": "npx . search fira",
     "test": "npx .",
-    "postinstall": "gfonts -h"
+    "postinstall": "ggfonts -h"
   },
   "keywords": [
     "font",
@@ -24,11 +24,9 @@
     "command-line",
     "cli"
   ],
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
   "repository": {
-    "url": "https://github.com/antruongnguyen/gfonts.git"
+    "type": "git",
+    "url": "https://github.com/antruongnguyen/ggfonts.git"
   },
   "author": "An Nguyen <annguyen.apps@gmail.com>",
   "license": "MIT",
@@ -36,5 +34,9 @@
     "adm-zip": "^0.5.9",
     "commander": "^9.4.0",
     "fuzzy-search": "^3.2.1"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/antruongnguyen/ggfonts/issues"
+  },
+  "homepage": "https://github.com/antruongnguyen/ggfonts#readme"
 }

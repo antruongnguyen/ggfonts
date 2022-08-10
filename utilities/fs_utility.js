@@ -33,10 +33,10 @@ const home = os.homedir();
 const downloadsDir = path.join(home, 'Downloads');
 const userFontsDirMacOS = path.join(home, 'Library', 'Fonts');
 const userFontsDirLinux = path.join(home, '.local', 'share', 'fonts');
-const gfontsDir = isWindows ? path.join(home, 'AppData', 'Local', 'gfonts') : path.join(home, '.gfonts');
-const apiKeyFilePath = path.join(gfontsDir, 'API_KEY');
-const googleFontsFilePath = path.join(gfontsDir, 'google-fonts.json');
-const googleFontMinFilePath = path.join(gfontsDir, 'google-fonts.min.json');
+const ggfontsDir = isWindows ? path.join(home, 'AppData', 'Local', 'ggfonts') : path.join(home, '.ggfonts');
+const apiKeyFilePath = path.join(ggfontsDir, 'API_KEY');
+const googleFontsFilePath = path.join(ggfontsDir, 'google-fonts.json');
+const googleFontMinFilePath = path.join(ggfontsDir, 'google-fonts.min.json');
 
 const fontExts = ['ttf', 'otf'];
 
@@ -218,7 +218,7 @@ const googleFontsMetaUrl = function () {
     // https://developers.google.com/fonts/docs/developer_api
     return `https://www.googleapis.com/webfonts/v1/webfonts?key=${apiKey}`;
   }
-  return 'https://raw.githubusercontent.com/antruongnguyen/gfonts/main/google-fonts.json';
+  return 'https://raw.githubusercontent.com/antruongnguyen/ggfonts/main/google-fonts.json';
 }
 
 const _download = function (_url, _toFile, _onSuccess = (response) => {}, _onError = (err) => {}) {
@@ -293,7 +293,7 @@ export const downloadFont = function (name) {
 }
 
 export const updateGoogleFontsMeta = function (callback = () => {}) {
-  mkdir(gfontsDir);
+  mkdir(ggfontsDir);
   download(googleFontsMetaUrl(), googleFontsFilePath, function () {
     const jsonText = readfile(googleFontsFilePath);
     const metaContent = JSON.stringify({

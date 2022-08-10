@@ -21,7 +21,7 @@ const _action = (options) => {
     warn('No API key provided, a pre-downloaded Google Fonts metadata will be used.');
     removeApiKey();
   }
-  info(`You may need to update the metadata by executing "${color.info('gfonts update')}".`);
+  info(`You may need to update the metadata by executing "${color.info('ggfonts update')}".`);
 };
 
 const _args = [];

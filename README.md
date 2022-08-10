@@ -4,12 +4,12 @@ A CLI tool to search and install font from https://fonts.google.com/
 
 ## Installation
 ```shell
-npm install -g gfonts
+npm install -g ggfonts
 ```
 
 ## Usage
 ```
-Syntax: gfonts [options] [command]
+Syntax: ggfonts [options] [command]
 
 Options:
   -h, --help               display help for command
@@ -28,7 +28,7 @@ Follow instruction to get API Key from https://developers.google.com/fonts/docs/
 
 #### Usage
 ```
-Syntax: gfonts config [options]
+Syntax: ggfonts config [options]
 
 Config Google Fonts API Key. If no API key provided, a pre-downloaded Google Fonts metadata will be used.
 
@@ -40,17 +40,17 @@ Options:
 #### Example
 ```shell
 # Set your API key
-gfonts config -k YOUR_GOOGLE_FONTS_API_KEY
+ggfonts config -k YOUR_GOOGLE_FONTS_API_KEY
 
 # Remove API Key and use the default config
-gfonts config
+ggfonts config
 ```
 
 ### Update Google Fonts metadata
 
 #### Usage
 ```
-Syntax: gfonts update [options]
+Syntax: ggfonts update [options]
 
 Options:
   -h, --help  display help for command
@@ -58,14 +58,14 @@ Options:
 
 #### Example
 ```shell
-gfonts update
+ggfonts update
 ```
 
 ### Search font
 
 #### Usage
 ```
-Syntax: gfonts search [options] <name>
+Syntax: ggfonts search [options] <name>
 
 Arguments:
   name                font name.
@@ -78,7 +78,7 @@ Options:
 #### Example
 ```shell
 # Full-text search is supported
-gfonts search 'op san'
+ggfonts search 'op san'
 
 # OUTPUT:
 # [INFO]  Search font by keyword: op san
@@ -86,10 +86,10 @@ gfonts search 'op san'
 # [INFO]   1. Open Sans
 # [INFO]   2. Ropa Sans
 
-gfonts search -m 5 rains
-# gfonts search -m=5 rains
-# gfonts search --max 5 rains
-# gfonts search --max=5 rains
+ggfonts search -m 5 rains
+# ggfonts search -m=5 rains
+# ggfonts search --max 5 rains
+# ggfonts search --max=5 rains
 
 # OUTPUT:
 # [INFO]  Search font by keyword: rains
@@ -106,7 +106,7 @@ gfonts search -m 5 rains
 
 #### Usage
 ```
-Usage: gfonts install [options] <name>
+Usage: ggfonts install [options] <name>
 
 Arguments:
   name        exact font name.
@@ -117,10 +117,10 @@ Options:
 
 #### Example
 ```shell
-gfonts install 'Open Sans'
+ggfonts install 'Open Sans'
 
 # Suggest the font name based on the input if no font matches
-gfonts install fira
+ggfonts install fira
 
 # OUTPUT:
 # [WARN]  No font found with name: fira
@@ -144,10 +144,10 @@ gfonts install fira
 - macOS
 - Windows
 
-### `gfonts` configuration directory
-- Linux: `$HOME/.gfonts`
-- macOS: `$HOME/.gfonts`
-- Windows: `%LOCALAPPDATA%\gfonts`
+### `ggfonts` configuration directory
+- Linux: `$HOME/.ggfonts`
+- macOS: `$HOME/.ggfonts`
+- Windows: `%LOCALAPPDATA%\ggfonts`
 
 ### Font download location
 - Linux: `$HOME/Downloads`
@@ -165,7 +165,7 @@ gfonts install fira
 - Windows: `%WINDIR%\Fonts`
 
 ## Credit
-`gfonts` wouldn't be possible without using the following modules: 
+`ggfonts` wouldn't be possible without using the following modules: 
 - [commander](https://www.npmjs.com/package/commander)
 - [adm-zip](https://www.npmjs.com/package/adm-zip)
 - [fuzzy-search](https://www.npmjs.com/package/fuzzy-search)
