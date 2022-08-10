@@ -24,6 +24,12 @@
     "command-line",
     "cli"
   ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "url": "https://github.com/antruongnguyen/gfonts.git"
+  },
   "author": "An Nguyen <annguyen.apps@gmail.com>",
   "license": "MIT",
   "dependencies": {
