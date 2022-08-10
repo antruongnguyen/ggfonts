@@ -13,6 +13,8 @@ import installCommand from "./commands/install.js";
 
 const cli = new Command();
 
+cli.version(process.env.npm_package_version, '-v, --version', 'display version number');
+
 cli.description("Google Fonts CLI tool to search and install font.");
 
 defineCommand(cli, configCommand);

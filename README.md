@@ -1,5 +1,7 @@
 # Google Fonts CLI
 
+[![npm version](https://badge.fury.io/js/ggfonts.svg)](https://badge.fury.io/js/ggfonts)
+
 A CLI tool to search and install font from https://fonts.google.com/
 
 ## Installation
@@ -12,6 +14,7 @@ npm install -g ggfonts
 Syntax: ggfonts [options] [command]
 
 Options:
+  -v, --version            display version number
   -h, --help               display help for command
 
 Commands:

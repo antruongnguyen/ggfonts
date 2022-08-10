@@ -1,7 +1,7 @@
 {
   "name": "ggfonts",
   "type": "module",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A CLI tool to search and install Google Fonts",
   "main": "index.js",
   "bin": {
@@ -13,8 +13,7 @@
     "test-config-default": "npx . config",
     "test-install": "npx . install rains",
     "test-search": "npx . search fira",
-    "test": "npx .",
-    "postinstall": "ggfonts -h"
+    "test": "npx . -v"
   },
   "keywords": [
     "font",
