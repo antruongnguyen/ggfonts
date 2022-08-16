@@ -1,7 +1,7 @@
 {
   "name": "ggfonts",
   "type": "module",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A CLI tool to search and install Google Fonts",
   "main": "index.js",
   "bin": {

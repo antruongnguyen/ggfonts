@@ -1,9 +1,9 @@
 # Google Fonts CLI
 
-![Project version](https://img.shields.io/github/package-json/v/antruongnguyen/ggfonts?style=flat-square)
-![Project issues](https://img.shields.io/github/issues/antruongnguyen/ggfonts?style=flat-square)
-![NPM downloads](https://img.shields.io/npm/dt/ggfonts?style=flat-square)
-![Project license](https://img.shields.io/github/license/antruongnguyen/ggfonts?style=flat-square)
+[![Project version](https://img.shields.io/github/package-json/v/antruongnguyen/ggfonts?style=flat-square)](https://github.com/antruongnguyen/ggfonts)
+[![Project issues](https://img.shields.io/github/issues/antruongnguyen/ggfonts?style=flat-square)](https://github.com/antruongnguyen/ggfonts/issues)
+[![NPM downloads](https://img.shields.io/npm/dt/ggfonts?style=flat-square)](https://www.npmjs.com/package/ggfonts)
+[![Project license](https://img.shields.io/github/license/antruongnguyen/ggfonts?style=flat-square)](https://github.com/antruongnguyen/ggfonts/blob/main/LICENSE)
 
 A CLI tool to search and install fonts from https://fonts.google.com/
 

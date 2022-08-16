@@ -254,7 +254,7 @@ export const download = function (_url, savingFilePath, callback = () => {}) {
       if (contains(_url, 'www.googleapis.com')) {
         error('Invalid Google Fonts API Key!');
       }
-      info(`In case you configured an invalid Google Fonts API Key, you could remove ${color.info(apiKeyFilePath)} file or create a new Key by following the instruction at https://developers.google.com/fonts/docs/developer_api`);
+      info(`In case you configured an invalid Google Fonts API Key, you could remove ${color.info(apiKeyFilePath)} file or create a new Key by following the instructions at https://developers.google.com/fonts/docs/developer_api`);
       return;
     }
     response.pipe(_toFile);
