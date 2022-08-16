@@ -1,8 +1,11 @@
 # Google Fonts CLI
 
-[![npm version](https://badge.fury.io/js/ggfonts.svg)](https://badge.fury.io/js/ggfonts)
+![Project version](https://img.shields.io/github/package-json/v/antruongnguyen/ggfonts?style=flat-square)
+![Project issues](https://img.shields.io/github/issues/antruongnguyen/ggfonts?style=flat-square)
+![NPM downloads](https://img.shields.io/npm/dt/ggfonts?style=flat-square)
+![Project license](https://img.shields.io/github/license/antruongnguyen/ggfonts?style=flat-square)
 
-A CLI tool to search and install font from https://fonts.google.com/
+A CLI tool to search and install fonts from https://fonts.google.com/
 
 ## Installation
 ```shell
@@ -18,7 +21,7 @@ Options:
   -h, --help               display help for command
 
 Commands:
-  config [options]         Config Google Fonts API Key. If no API key provided, a pre-downloaded Google Fonts metadata will be used.
+  config [options]         Config Google Fonts API Key. If no API key is provided, a pre-downloaded Google Fonts metadata will be used.
   update                   Update Google Fonts metadata
   search [options] <name>  Search font
   install <name>           Install font
@@ -27,13 +30,13 @@ Commands:
 
 ### Configure Google Fonts API Key
 
-Follow instruction to get API Key from https://developers.google.com/fonts/docs/developer_api
+Follow instructions to get API Key from https://developers.google.com/fonts/docs/developer_api
 
 #### Usage
 ```
 Syntax: ggfonts config [options]
 
-Config Google Fonts API Key. If no API key provided, a pre-downloaded Google Fonts metadata will be used.
+Config Google Fonts API Key. If no API key is provided, a pre-downloaded Google Fonts metadata will be used.
 
 Options:
   -k, --key <key>  API Key
