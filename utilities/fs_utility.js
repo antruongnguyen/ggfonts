@@ -467,7 +467,7 @@ const installFontsOnWindows = (fontsDirPath) => {
   // https://superuser.com/questions/201896/how-do-i-install-a-font-from-the-windows-command-prompt
   const installScriptPath = path.join(fontsDirPath, 'install.ps1');
   mkfile(installScriptPath, [
-    `cd ${fontsDirPath}`,
+    `cd '${fontsDirPath}'`,
     '$fonts = (New-Object -ComObject Shell.Application).Namespace(0x14)',
     'Get-ChildItem -Recurse -include *.*tf | % { $fonts.CopyHere($_.fullname) }'
   ].join(os.EOL));
