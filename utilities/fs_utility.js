@@ -44,7 +44,7 @@ const emptyStr = '';
 
 /**
  * Validate whether a path is existed or not
- * 
+ *
  * @param {string} _path a file or directory path
  * @returns {boolean} true | false
  */
@@ -52,7 +52,7 @@ const exists = (_path) => fs.existsSync(_path);
 
 /**
  * Validate whether a path is a file or not
- * 
+ *
  * @param {string} _path a path to evaluate
  * @returns {boolean} true | false
  */
@@ -60,7 +60,7 @@ const isFile = (_path) => fs.lstatSync(_path).isFile();
 
 /**
  * Get the name of file or directory from a path
- * 
+ *
  * @param {string} _path a path to evaluate
  * @returns {string} the name of file or directory
  */
@@ -68,7 +68,7 @@ const getBaseName = (_path) => path.basename(_path);
 
 /**
  * Get a file name extension from a path
- * 
+ *
  * @param {string} _path a path to evaluate
  * @returns {string} the extention in lowercase
  */
@@ -76,7 +76,7 @@ const getFileExt = (_path) => path.extname(_path).toLowerCase();
 
 /**
  * Get the directory path
- * 
+ *
  * @param {string} _path a path to evaluate
  * @returns {string} the parent path of a file or the path of the directory
  */
@@ -84,7 +84,7 @@ const getDirPath = (_path) => path.dirname(_path);
 
 /**
  * Ensure the input value is an array
- * 
+ *
  * @param {*[]} _values the values to evaluate
  * @returns {*[]} empty if the input param is not an array. Otherwise, returns the param value itself.
  */
@@ -93,7 +93,7 @@ const arrayOf = (_values) => Array.isArray(_values) ? _values : [];
 // Make use of String.indludes(), Array.includes(), Object.hasOwnProperty(). Otherwise, return false
 /**
  * Verify an item contains a value. It makes use of `String.indludes()`, `Array.includes()`, and `Object.hasOwnProperty()` to evaluate the value from a search item.
- * 
+ *
  * @param {*[]|string|object} searchItem the target item
  * @param {*} searchValue the value to verify
  * @returns {boolean} `true` if `seachItem` includes (for string or array value) the `searchValue` or has a property name (for object item) equals to the `searchValue`. Otherwise, returns `false`
@@ -116,7 +116,7 @@ const contains = function (searchItem, searchValue) {
 
 /**
  * Verify an item contains at least a value from the provided values.
- * 
+ *
  * @param {*[]|string|object} searchItem the target item
  * @param {*[]} searchValues the values to evaluate
  * @returns `true` if `searchItem` contains any value from `searchValue`. Otherwise, returns `false`.
@@ -129,7 +129,7 @@ const containsAny = function (searchItem, searchValues = []) {
 
 /**
  * Create directory recursively
- * 
+ *
  * @param {string} dirPath a path of directory to create
  * @param {boolean} recursive will create the directory recursively if its parents are not existed? Default to `true`
  * @returns {void} no return
@@ -198,7 +198,7 @@ const copyFiles = function (fromDirPath, toDirPath, copyFileExtensions = []) {
 
 /**
  * Construct download file path
- * 
+ *
  * @param {string} name the file name
  * @returns Absolute path of ~/Downloads/[name]
  */
@@ -208,7 +208,7 @@ const downloadFontFilePath = function (name) {
 
 /**
  * Construct URL to download Google Fonts metadata
- * 
+ *
  * @returns The URL
  */
 const googleFontsMetaUrl = function () {
@@ -248,7 +248,7 @@ export const download = function (_url, savingFilePath, callback = () => {}) {
       statusMessage
     } = response;
     if (statusCode !== 200) {
-      error(`[${statusCode} - ${statusMessage}] See https://httpstatus.in/${statusCode}/`);
+      error(`[${statusCode} - ${statusMessage}] See https://httpstatusof.web.app/${statusCode}`);
       _toFile.close();
       fs.unlinkSync(tmp);
       if (contains(_url, 'www.googleapis.com')) {
@@ -274,7 +274,7 @@ export const download = function (_url, savingFilePath, callback = () => {}) {
 
 /**
  * Download and install a font by provided name from Google Fonts
- * 
+ *
  * @param {string} name an exact font name
  * @returns {void}
  */
@@ -287,8 +287,9 @@ export const downloadFont = function (name) {
       return;
     }
     mkdir(downloadsDir);
-    const filePath = downloadFontFilePath(`${name}-${version}.zip`);
-    download(`https://fonts.google.com/download?family=${name}`, filePath, () => installFonts(name, filePath));
+    const safeName = name.replaceAll(' ', '\\ ');
+    const filePath = downloadFontFilePath(`${safeName}-${version}.zip`);
+    download(`https://fonts.google.com/download?family=${name}`, filePath, () => installFonts(safeName, filePath));
   });
 }
 
@@ -354,7 +355,7 @@ export const searchFont = function (name, maxResultLimit = 10) {
 
 /**
  * Get font version by name
- * 
+ *
  * @param {string} name an exact font name
  * @returns {string} the version of the font
  */
@@ -381,7 +382,7 @@ const readZipFile = (zipFilePath) => new AdmZip(zipFilePath);
 
 /**
  * Extract (unzip) a zip file
- * 
+ *
  * @param {string} zipFilePath a zip file path
  * @param {string} extractDirPath a directory path to unzip
  * @param {string[]} extractFileExtensions an optional filter for decompression. Leave it empty to extract all.
@@ -414,7 +415,7 @@ const installFontsOnMacOS = (fontsDirPath) => {
 
 /**
  * Install fonts for supported Linux distros (Debian-based OS, Arch-based OS, CentOS, Alpine, and Fedora)
- * 
+ *
  * @param {string} fontsDirPath a directory which contains *.ttf and/or *.otf files
  */
 const installFontsOnLinux = (fontsDirPath) => {
