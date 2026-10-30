@@ -9,8 +9,8 @@ import {
 import log from "../utilities/console_utility.js";
 
 
-const _action = (name) => {
-  downloadFont(name);
+const _action = async (name) => {
+  if (!await downloadFont(name)) process.exitCode = 1;
 };
 
 const _args = [

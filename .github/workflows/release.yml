@@ -1,0 +1,61 @@
+# npm trusted publisher: release.yml, with "Allow npm publish" enabled.
+# https://docs.npmjs.com/trusted-publishers/
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the GitHub release
+      id-token: write # npm provenance / trusted publishing
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          check-latest: true
+          package-manager-cache: false
+      - name: Verify tag matches package.json version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "Tag v$TAG does not match package.json version $PKG" >&2
+            exit 1
+          fi
+
+      - name: Set up npm for trusted publishing
+        run: npm install --global npm@11
+
+      - name: Pack release artifact
+        id: pack
+        run: |
+          TARBALL="$(npm pack --quiet)"
+          echo "tarball=$TARBALL" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to npm
+        run: npm publish "$TARBALL" --access public --provenance
+        env:
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: ${{ steps.pack.outputs.tarball }}
+          generate_release_notes: true

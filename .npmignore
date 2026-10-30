@@ -105,3 +105,6 @@ dist
 
 # Google Fonts metadata
 google-fonts.json
+
+# Development tests
+test/

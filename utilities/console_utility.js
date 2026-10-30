@@ -3,6 +3,9 @@ import {
   warn,
   error
 } from 'console';
+import pc from 'picocolors';
+
+let reporter;
 
 const _label = {
   info: 'INFO',
@@ -12,11 +15,10 @@ const _label = {
 };
 
 const _color = {
-  reset: "\x1b[0m",
-  cyan: (str) => `\x1b[36m${str}\x1b[0m`,
-  yellow: (str) => `\x1b[33m${str}\x1b[0m`,
-  red: (str) => `\x1b[31m${str}\x1b[0m`,
-  green: (str) => `\x1b[32m${str}\x1b[0m`
+  cyan: pc.cyan,
+  yellow: pc.yellow,
+  red: pc.red,
+  green: pc.green
 }
 
 const _paddingMaxLength = Math.max.apply(null, Object.values(_label).map(str => str.length)) + 2;
@@ -31,6 +33,7 @@ const _prefix = {
 };
 
 const _info = function (msg, data) {
+  if (reporter) return reporter.info(data ? `${msg} ${data}` : msg);
   if (data) {
     info(_prefix.info, msg, data);
   } else {
@@ -39,6 +42,7 @@ const _info = function (msg, data) {
 };
 
 const _warn = function (msg, data) {
+  if (reporter) return reporter.warn(data ? `${msg} ${data}` : msg);
   if (data) {
     warn(_prefix.warn, msg, data);
   } else {
@@ -47,6 +51,7 @@ const _warn = function (msg, data) {
 };
 
 const _error = function (msg, data) {
+  if (reporter) return reporter.error(data ? `${msg} ${data}` : msg);
   if (data) {
     error(_prefix.error, msg, data);
   } else {
@@ -55,10 +60,11 @@ const _error = function (msg, data) {
 };
 
 const log = {
+  setReporter: (value) => { reporter = value; },
   info: _info,
   warn: _warn,
   error: _error,
-  done: (msg = 'Done!') => info(_prefix.success, msg),
+  done: (msg = 'Done!') => reporter ? reporter.success(msg) : info(_prefix.success, msg),
   color: {
     info: _color.cyan,
     warn: _color.yellow,

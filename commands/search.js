@@ -18,7 +18,7 @@ const _action = (name, options) => {
   if (max !== parsedMax) {
     warn(`Invalid max result limit "${options.max}", using default of ${max}.`);
   }
-  searchFont(name, max);
+  return searchFont(name, max);
 };
 
 const _args = [

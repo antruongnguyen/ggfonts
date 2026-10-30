@@ -6,7 +6,7 @@ import {
 } from '../utilities/commander_utility.js';
 
 const _action = () => {
-  updateGoogleFontsMeta();
+  return updateGoogleFontsMeta();
 };
 
 const _args = [];

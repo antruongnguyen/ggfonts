@@ -5,176 +5,146 @@
 [![NPM downloads](https://img.shields.io/npm/dt/ggfonts?style=flat-square)](https://www.npmjs.com/package/ggfonts)
 [![Project license](https://img.shields.io/github/license/antruongnguyen/ggfonts?style=flat-square)](https://github.com/antruongnguyen/ggfonts/blob/main/LICENSE)
 
-A CLI tool to search and install fonts from https://fonts.google.com/
+Search and install [Google Fonts](https://fonts.google.com/) from your terminal, with an interactive picker or command-line arguments.
 
 ## Installation
+
+Requires **Node.js 22 or newer**. Version 1.1.0 adds the interactive interface and drops Node.js 20 support.
+
 ```shell
 npm install -g ggfonts
 ```
 
-## Usage
-```
-Syntax: ggfonts [options] [command]
+## Interactive mode
 
-Options:
-  -v, --version            display version number
-  -h, --help               display help for command
+Run `ggfonts` without arguments in a terminal:
 
-Commands:
-  config [options]         Config Google Fonts API Key. If no API key is provided, a pre-downloaded Google Fonts metadata will be used.
-  update                   Update Google Fonts metadata
-  search [options] <name>  Search font
-  install <name>           Install font
-  help [command]           display help for command
-```
-
-### Configure Google Fonts API Key
-
-Follow instructions to get API Key from https://developers.google.com/fonts/docs/developer_api
-
-#### Usage
-```
-Syntax: ggfonts config [options]
-
-Config Google Fonts API Key. If no API key is provided, a pre-downloaded Google Fonts metadata will be used.
-
-Options:
-  -k, --key <key>  API Key
-  -h, --help       display help for command
-```
-
-#### Example
 ```shell
-# Set your API key
-ggfonts config -k YOUR_GOOGLE_FONTS_API_KEY
+ggfonts
+```
 
-# Remove API Key and use the default config
+```text
+What would you like to do?
+  Search and install fonts
+  Update font catalogue
+  Configure API key
+  Exit
+```
+
+- Type to filter the font catalogue, use ↑/↓ to choose a font, and press Enter to select it.
+- Confirm installation to download and install the font. Progress and results appear before the menu returns.
+- Configure an optional Google Fonts API key through a masked prompt, or use the default catalogue without a key.
+- Press Escape or Ctrl+C to cancel a prompt; Ctrl+C also stops a running operation.
+
+The catalogue downloads on first use and is cached locally. Choose **Update font catalogue** to refresh it.
+
+## Command mode
+
+Explicit commands remain available for scripts. Running `ggfonts` without arguments outside a terminal prints help.
+
+| Command | Purpose |
+| --- | --- |
+| `ggfonts search <name>` | Search font families using a fuzzy query |
+| `ggfonts install <name>` | Install an exact font family name |
+| `ggfonts update` | Refresh the cached font catalogue |
+| `ggfonts config --key <key>` | Save a Google Fonts API key |
+| `ggfonts config` | Remove the API key and use the default catalogue |
+| `ggfonts help [command]` | Show help for the CLI or a command |
+| `ggfonts --version` | Show the installed version |
+
+### Search fonts
+
+```shell
+ggfonts search fira
+ggfonts search 'op san'
+ggfonts search rains --max 5
+```
+
+Search is case-insensitive. Use `-m, --max <result>` to limit displayed results; the default is 10. If more fonts match, the output reports how many additional results are available.
+
+### Install a font
+
+```shell
+ggfonts install 'Fira Code'
+ggfonts install 'Open Sans'
+```
+
+Provide the exact family name. If there is no exact match, the command prints search suggestions and exits with an error. Downloads and installation failures also produce a nonzero exit code.
+
+### Configure the catalogue
+
+No API key is required by default: `ggfonts` downloads the shared catalogue from this repository. To use the Google Fonts API, follow Google's [API key instructions](https://developers.google.com/fonts/docs/developer_api).
+
+```shell
+# Save an API key
+ggfonts config --key YOUR_GOOGLE_FONTS_API_KEY
+
+# Refresh metadata using the selected source
+ggfonts update
+
+# Remove the key and switch back to the default source
 ggfonts config
-```
-
-### Update Google Fonts metadata
-
-#### Usage
-```
-Syntax: ggfonts update [options]
-
-Options:
-  -h, --help  display help for command
-```
-
-#### Example
-```shell
 ggfonts update
 ```
 
-### Search font
+Changing the key does not refresh existing metadata automatically. Run `ggfonts update` to apply the selected source. The interactive key prompt masks your input.
 
-#### Usage
-```
-Syntax: ggfonts search [options] <name>
+## Supported platforms and file locations
 
-Arguments:
-  name                font name.
+Fonts install for the current user on macOS, Linux, and Windows.
 
-Options:
-  -m, --max <result>  max result limit (default: 10)
-  -h, --help          display help for command
-```
+| Platform | Configuration and catalogue cache | Installed fonts |
+| --- | --- | --- |
+| macOS | `$HOME/.ggfonts` | `$HOME/Library/Fonts` |
+| Linux | `$HOME/.ggfonts` | `$HOME/.local/share/fonts` |
+| Windows | `%USERPROFILE%\AppData\Local\ggfonts` | `%LOCALAPPDATA%\Microsoft\Windows\Fonts` |
 
-#### Example
+Linux uses the same user font directory across distributions and refreshes the fontconfig cache with `fc-cache -f` when available. On Windows, fonts are registered for the current user; if per-user installation is unavailable, the installer falls back to system-wide installation in `%WINDIR%\Fonts`, which may require administrator approval.
+
+Downloads use a temporary `tmp` directory inside the configuration directory. Scratch files are removed after a successful installation. Restart applications if newly installed fonts do not appear immediately.
+
+## Development
+
 ```shell
-# Full-text search is supported
-ggfonts search 'op san'
+npm ci
 
-# OUTPUT:
-# [INFO]  Search font by keyword: op san
-# [INFO]  Found 2 fonts:
-# [INFO]   1. Open Sans
-# [INFO]   2. Ropa Sans
+# Run the CLI from the checkout
+node index.js
 
-ggfonts search -m 5 rains
-# ggfonts search -m=5 rains
-# ggfonts search --max 5 rains
-# ggfonts search --max=5 rains
+# Automated command, installer, and wizard tests
+npm test
 
-# OUTPUT:
-# [INFO]  Search font by keyword: rains
-# [INFO]  Found 7 fonts:
-# [INFO]   1. JetBrains Mono
-# [INFO]   2. Noto Serif Balinese
-# [INFO]   3. Noto Traditional Nushu
-# [INFO]   4. Racing Sans One
-# [INFO]   5. Saira Semi Condensed
-# [INFO]  ... and 2 more results
+# Real keyboard smoke checks on macOS/Linux (requires Python 3)
+python3 test/terminal.py
 ```
 
-### Download and install font
+Tests use temporary home directories and simulated downloads, so they do not install fonts or change configuration in your home directory. Windows registry and PowerShell checks use simulations.
 
-#### Usage
-```
-Usage: ggfonts install [options] <name>
+[CI](.github/workflows/ci.yml) runs the suite on Node.js 22 and 24 across Linux, macOS, and Windows. Real keyboard checks run on Linux and macOS, and package contents are checked once with `npm pack --dry-run`. The release workflow reuses these checks before publishing.
 
-Arguments:
-  name        exact font name.
+## Releasing
 
-Options:
-  -h, --help  display help for command
-```
+Configure an [npm trusted publisher](https://docs.npmjs.com/trusted-publishers/) for `antruongnguyen/ggfonts` using the workflow filename `release.yml`. Enable **Allow npm publish**; new trusted publishers allow staged publishing by default. No `NPM_TOKEN` secret is needed.
 
-#### Example
+Push a version tag matching `package.json`:
+
 ```shell
-ggfonts install 'Open Sans'
-
-# Suggest the font name based on the input if no font matches
-ggfonts install fira
-
-# OUTPUT:
-# [WARN]  No font found with name: fira
-# [INFO]  Search font by keyword: fira
-# [INFO]  Found 13 fonts:
-# [INFO]   1. Finger Paint
-# [INFO]   2. Fira Code
-# [INFO]   3. Fira Mono
-# [INFO]   4. Fira Sans
-# [INFO]   5. Fira Sans Condensed
-# [INFO]   6. Fira Sans Extra Condensed
-# [INFO]   7. Flow Circular
-# [INFO]   8. Fontdiner Swanky
-# [INFO]   9. Fredericka the Great
-# [INFO]  10. Noto Kufi Arabic
-# [INFO]  ... and 3 more results
+git tag v1.1.0
+git push origin v1.1.0
 ```
 
-## Supported OS
-- Linux: Debian-based OS, Arch-based OS, CentOS, Alpine, Fedora
-- macOS
-- Windows
-
-### `ggfonts` configuration directory
-- Linux: `$HOME/.ggfonts`
-- macOS: `$HOME/.ggfonts`
-- Windows: `%LOCALAPPDATA%\ggfonts`
-
-### Font download location
-- Linux: `$HOME/Downloads`
-- macOS: `$HOME/Downloads`
-- Windows: `%USERPROFILE%\Downloads`
-
-### Font install location
-- Linux
-  - Debian-based OS: `$HOME/.local/share/fonts`
-  - Arch-based OS: `$HOME/.local/share/fonts`
-  - CentOS: `$HOME/.fonts`
-  - Alpine: `$HOME/.fonts`
-  - Fedora: `/usr/share/fonts/[Font Name]`
-- macOS: `$HOME/Library/Fonts`
-- Windows: `%WINDIR%\Fonts`
+The [release workflow](.github/workflows/release.yml) waits for CI, checks that the tag matches the package version, and uses Node.js 22 with npm 11 for OIDC publishing. It packs the CLI, publishes that tarball to npm with provenance, and attaches the same tarball to a GitHub release with generated release notes.
 
 ## Credit
-`ggfonts` wouldn't be possible without using the following modules: 
+
+Built with:
+
+- [@clack/prompts](https://www.npmjs.com/package/@clack/prompts)
+- [picocolors](https://www.npmjs.com/package/picocolors)
 - [commander](https://www.npmjs.com/package/commander)
 - [adm-zip](https://www.npmjs.com/package/adm-zip)
 - [fuzzy-search](https://www.npmjs.com/package/fuzzy-search)
 
 ## License
-Licensed under MIT
+
+[MIT](LICENSE)
