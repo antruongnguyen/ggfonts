@@ -16,7 +16,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 FONTS = json.loads((ROOT / 'google-fonts.json').read_text())['items']
 
 
-def check(name, steps):
+def check(name, steps, install=False):
     with tempfile.TemporaryDirectory(prefix='ggfonts-pty-') as home:
         data = pathlib.Path(home) / '.ggfonts'
         data.mkdir()
@@ -25,7 +25,10 @@ def check(name, steps):
         if pid == 0:
             os.chdir(ROOT)
             env = dict(os.environ, HOME=home, TERM='xterm-256color', NO_COLOR='1', FORCE_COLOR='0')
-            os.execvpe('node', ['node', 'index.js'], env)
+            if install:
+                env['GGFONTS_NETWORK'] = 'nested'
+            args = ['node', '--require', './test/fixtures/network.cjs', 'index.js'] if install else ['node', 'index.js']
+            os.execvpe('node', args, env)
         fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack('HHHH', 24, 90, 0, 0))
         output = ''
 
@@ -58,7 +61,17 @@ def check(name, steps):
                 assert time.monotonic() < deadline, (name, 'did not exit', output[-2000:])
             assert os.waitstatus_to_exitcode(status) == 0, output[-2000:]
             assert not (data / 'API_KEY').exists()
-            assert not (data / 'tmp').exists()
+            if install:
+                clean = re.sub(r'\x1b\[[0-?]*[ -/]*[@-~]', '', output)
+                assert 'Downloaded FiraCode.ttf' in clean, clean[-4000:]
+                assert 'Stored at:' in clean, clean[-4000:]
+                assert 'Installed files: 2' in clean, clean[-4000:]
+                assert 'Location:' in clean, clean[-4000:]
+                assert '  - FiraCode-Bold.OTF' in clean, clean[-4000:]
+                assert '  - FiraCode.ttf' in clean, clean[-4000:]
+                assert not list((data / 'tmp').iterdir())
+            else:
+                assert not (data / 'tmp').exists()
             assert 'hidden-key' not in output
             print(f'PASS: {name} ({len(FONTS)} fonts)')
         finally:
@@ -85,3 +98,7 @@ check('API key is masked on cancellation', [
     (b'\x1b[B\x1b[B\r', 'Choose a font metadata source'),
     (b'\x1b[B\r', 'Google Fonts API key'), (b'hidden-key\x03', 'Cancelled.')
 ])
+check('installation retains download paths and summary', [
+    (b'\r', 'Choose a font'), (b'Fira Code\r', 'Install Fira Code'),
+    (b'\x1b[C\r', 'What would you like to do?'), (b'\x1b[A\r', 'See you next time!')
+], install=True)

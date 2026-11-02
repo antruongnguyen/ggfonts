@@ -27,3 +27,15 @@ export const spinner = () => ({
   start: console.log, stop: console.log, message: () => {},
   clear: () => {}, error: console.log, cancel: console.log
 });
+export const taskLog = ({ title }) => {
+  console.log(title);
+  const messages = [];
+  return {
+    message: msg => messages.push(msg),
+    success: (msg, { showLog } = {}) => {
+      console.log(msg);
+      if (showLog) console.log(messages.join('\n'));
+    },
+    error: msg => { console.log(msg); console.log(messages.join('\n')); }
+  };
+};

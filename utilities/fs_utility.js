@@ -194,7 +194,7 @@ const copyFiles = function (fromDirPath, toDirPath, copyFileExtensions = []) {
         copiedCount++;
         return;
       }
-      copiedCount += copyFiles(_fromPath, _toPath, copyFileExtensions);
+      copiedCount += copyFiles(_fromPath, toDirPath, copyFileExtensions);
     });
   return copiedCount;
 }
@@ -243,13 +243,19 @@ const _download = function (_url, _onSuccess, _onError, _redirectsLeft = MAX_RED
         return;
       }
       info(`[${statusCode} - ${statusMessage}] Redirecting to ${location}`);
-      _download(location, _onSuccess, _onError, _redirectsLeft - 1);
+      try {
+        _download(new URL(location, _url).href, _onSuccess, _onError, _redirectsLeft - 1);
+      } catch (err) {
+        _onError(err);
+      }
       return;
     }
     _onSuccess(response);
   });
 
   request.on('error', _onError);
+  request.setTimeout(30000, () => request.destroy(new Error('Download timed out')));
+  return request;
 }
 
 /**
@@ -261,7 +267,7 @@ const _download = function (_url, _onSuccess, _onError, _redirectsLeft = MAX_RED
  */
 export const download = function (_url, savingFilePath) {
   return new Promise(resolve => {
-    info('Downloading', color.info(_url.replace(/([?&]key=)[^&]*/g, '$1[hidden]')));
+    info(`Downloading ${color.info(path.basename(savingFilePath))}\n  Save to: ${color.info(savingFilePath)}\n  Source: ${color.info(_url.replace(/([?&]key=)[^&]*/g, '$1[hidden]'))}`);
     const tmp = savingFilePath + '.tmp';
     let settled = false;
     const finish = (success) => {
@@ -272,9 +278,17 @@ export const download = function (_url, savingFilePath) {
       resolve(success);
     };
     const discardTmp = () => fs.unlink(tmp, () => {});
+    try {
+      fs.mkdirSync(path.dirname(savingFilePath), { recursive: true });
+    } catch (err) {
+      error(err.message);
+      finish(false);
+      return;
+    }
     const stream = fs.createWriteStream(tmp);
     stream.on('error', err => {
       error(err.message);
+      request.destroy();
       discardTmp();
       finish(false);
     });
@@ -307,7 +321,7 @@ export const download = function (_url, savingFilePath) {
           try {
             fs.copyFileSync(tmp, savingFilePath);
             fs.unlinkSync(tmp);
-            info('Downloaded to', color.info(savingFilePath));
+            info(`Downloaded ${color.info(path.basename(savingFilePath))}\n  Stored at: ${color.info(savingFilePath)}`);
             finish(true);
           } catch (err) {
             error(err.message);
@@ -318,7 +332,7 @@ export const download = function (_url, savingFilePath) {
       });
     };
 
-    _download(_url, _onSuccess, (err) => {
+    const request = _download(_url, _onSuccess, (err) => {
       error(err.message);
       stream.close(discardTmp);
       finish(false);
@@ -399,25 +413,28 @@ const extractFontArchive = function (zipPath, destDir) {
 const downloadFontFromFileList = async function (name, destDir) {
   try {
     const url = `https://fonts.google.com/download/list?family=${encodeURIComponent(name)}`;
-    info('Downloading', color.info(url));
-    const response = await fetch(url);
+    info(`Fetching file list for ${color.info(name)}: ${color.info(url)}`);
+    const response = await fetch(url, { signal: AbortSignal.timeout(30000) });
     if (!response.ok) {
       throw new Error(`[${response.status} - ${response.statusText}]`);
     }
     const text = await response.text();
     // Strip the XSS guard prefix `)]}'` if present
     const json = JSON.parse(text.replace(/^\)\]\}'\s*/, ''));
-    const fileRefs = arrayOf(json.manifest && json.manifest.fileRefs);
+    const fileRefs = arrayOf(json.manifest && json.manifest.fileRefs)
+      .filter(fileRef => fontExts.includes(getFileExt(fileRef.filename).slice(1)));
     if (fileRefs.length === 0) {
       throw new Error('No files found in the manifest');
     }
     rmdir(destDir);
     mkdir(destDir);
     for (const fileRef of fileRefs) {
-      if (!containsAny(getFileExt(fileRef.filename), fontExts)) {
-        continue;
+      const destination = path.resolve(destDir, fileRef.filename);
+      const relativePath = path.relative(destDir, destination);
+      if (relativePath.startsWith('..' + path.sep) || path.isAbsolute(relativePath)) {
+        throw new Error(`Invalid font filename: ${fileRef.filename}`);
       }
-      const saved = await download(fileRef.url, path.join(destDir, fileRef.filename));
+      const saved = await download(fileRef.url, destination);
       if (!saved) {
         throw new Error(`Failed to download ${fileRef.filename}`);
       }
@@ -431,8 +448,8 @@ const downloadFontFromFileList = async function (name, destDir) {
 
 /**
  * Download and install a font by provided name from Google Fonts.
- * Downloads the font archive from `https://fonts.google.com/download?family=<name>`;
- * falls back to the file list endpoint when the archive is unavailable or invalid.
+ * Uses the Google Fonts file list endpoint; falls back to a ZIP archive
+ * when the manifest is unavailable.
  *
  * @param {string} name an exact font name
  * @returns {Promise<boolean>} whether installation completed
@@ -453,11 +470,12 @@ export const downloadFont = async function (name) {
   const extractDir = path.join(workDir, 'fonts');
 
   info(`Installing font ${color.info(name)} ${color.info(`(v${version.replace(/^v/, emptyStr)})`)}`);
-  const downloaded = await download(`https://fonts.google.com/download?family=${encodeURIComponent(safeName)}`, zipPath);
-  let fontsSourceDir = downloaded ? extractFontArchive(zipPath, extractDir) : null;
+  let fontsSourceDir = await downloadFontFromFileList(name, extractDir);
   if (!fontsSourceDir) {
-    warn('Direct download failed or returned an invalid archive. Falling back to the Google Fonts file list endpoint...');
-    fontsSourceDir = await downloadFontFromFileList(name, extractDir);
+    warn('File list download failed. Trying the Google Fonts ZIP endpoint...');
+    rmdir(extractDir);
+    const downloaded = await download(`https://fonts.google.com/download?family=${encodeURIComponent(name)}`, zipPath);
+    fontsSourceDir = downloaded ? extractFontArchive(zipPath, extractDir) : null;
   }
   if (!fontsSourceDir) {
     error(`Could not download font ${color.warn(name)}. Please verify the font name and your network connection.`);
@@ -646,22 +664,28 @@ const registerFontInWindowsRegistry = function (fontPath) {
 };
 
 /**
- * Install fonts system-wide on Windows via the Shell.Application COM object.
- * Requires administrator approval (UAC prompt). Used as fallback when the
+ * Copy and register fonts system-wide on Windows using PowerShell.
+ * Requires an elevated terminal. Used as fallback when the
  * per-user installation is unavailable.
  *
  * @param {string} fontsDirPath a directory which contains *.ttf and/or *.otf files
  * @param {string} scriptDir directory to place the generated PowerShell script in
- * @returns {Promise<boolean>} whether PowerShell completed successfully
+ * @returns {Promise<string>} the font installation directory when PowerShell succeeds
  */
 const installFontsOnWindowsSystemWide = async function (fontsDirPath, scriptDir) {
-  // https://superuser.com/questions/201896/how-do-i-install-a-font-from-the-windows-command-prompt
   const installScriptPath = path.join(scriptDir, 'ggfonts-install-system-wide.ps1');
   // Escape single quotes for PowerShell single-quoted literals
   const escapedDirPath = fontsDirPath.replaceAll("'", "''");
-  mkfile(installScriptPath, [
-    `$fonts = (New-Object -ComObject Shell.Application).Namespace(0x14)`,
-    `Get-ChildItem -LiteralPath '${escapedDirPath}' -Recurse -Include *.ttf, *.otf | ForEach-Object { $fonts.CopyHere($_.FullName) }`
+  // Windows PowerShell 5.1 needs a BOM to read non-ASCII paths as UTF-8.
+  mkfile(installScriptPath, '\uFEFF' + [
+    `$ErrorActionPreference = 'Stop'`,
+    `$target = Join-Path $env:WINDIR 'Fonts'`,
+    `Get-ChildItem -LiteralPath '${escapedDirPath}' -Recurse -File | Where-Object { $_.Extension -in '.ttf', '.otf' } | ForEach-Object {`,
+    `  $destination = Join-Path $target $_.Name`,
+    `  Copy-Item -LiteralPath $_.FullName -Destination $destination -Force`,
+    `  $type = if ($_.Extension -ieq '.otf') { 'OpenType' } else { 'TrueType' }`,
+    String.raw`  New-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name ($_.BaseName + ' (' + $type + ')') -Value $_.Name -PropertyType String -Force | Out-Null`,
+    `}`
   ].join(os.EOL));
 
   info(`Executing ${color.info(installScriptPath)} to install fonts system-wide...`);
@@ -675,7 +699,7 @@ const installFontsOnWindowsSystemWide = async function (fontsDirPath, scriptDir)
     powershell.on('exit', code => {
       if (code === 0) {
         info('[PowerShell] Done!');
-        resolve(true);
+        resolve(path.join(process.env.WINDIR || 'C:\\Windows', 'Fonts'));
       } else {
         reject(new Error(`[PowerShell] Exited with code ${code}. Please install the fonts manually by copying them to 'C:\\Windows\\Fonts'.`));
       }
@@ -694,7 +718,7 @@ const installFontsOnWindowsSystemWide = async function (fontsDirPath, scriptDir)
  *
  * @param {string} fontsDirPath a directory which contains *.ttf and/or *.otf files
  * @param {string} scriptDir directory used for the fallback PowerShell script
- * @returns {Promise<boolean>} `true` when at least one font was installed
+ * @returns {Promise<string|false>} the installation directory, or `false` when no fonts were found
  */
 const installFontsOnWindows = async function (fontsDirPath, scriptDir) {
   const fontFiles = collectFontFiles(fontsDirPath);
@@ -707,7 +731,6 @@ const installFontsOnWindows = async function (fontsDirPath, scriptDir) {
   mkdir(targetDir);
 
   let installedCount = 0;
-  let registryFailures = 0;
   let copyFailures = 0;
   fontFiles.forEach(fontFile => {
     const destPath = path.join(targetDir, path.basename(fontFile));
@@ -723,17 +746,17 @@ const installFontsOnWindows = async function (fontsDirPath, scriptDir) {
       installedCount++;
       info(`Installed ${color.info(path.basename(fontFile))} for the current user.`);
     } catch (err) {
-      registryFailures++;
       warn(`Could not register ${path.basename(fontFile)} in the registry: ${err.message.split('\n')[0]}`);
     }
   });
 
-  if (installedCount > 0) {
+  if (installedCount === fontFiles.length) {
     done(`Installed ${installedCount} font file(s) for the current user in ${color.info(targetDir)}.`);
-    if (registryFailures > 0) {
-      warn(`${registryFailures} font(s) were copied but not registered. Restart your applications to pick them up.`);
-    }
-    return true;
+    return targetDir;
+  }
+  if (installedCount > 0) {
+    warn(`Only ${installedCount} of ${fontFiles.length} font(s) were installed for the current user. Trying system-wide installation...`);
+    return installFontsOnWindowsSystemWide(fontsDirPath, scriptDir);
   }
 
   if (copyFailures === fontFiles.length) {
@@ -756,6 +779,7 @@ const installFontsOnWindows = async function (fontsDirPath, scriptDir) {
  */
 const installFonts = async function (name, fontsSourceDir, workDir) {
   info(`Installing font ${color.info(name)} from ${color.info(fontsSourceDir)}`);
+  const fontFiles = collectFontFiles(fontsSourceDir);
   let installed = false;
   if (isMacOS) {
     installed = installFontsOnMacOS(fontsSourceDir) > 0;
@@ -769,6 +793,7 @@ const installFonts = async function (name, fontsSourceDir, workDir) {
   if (!installed) throw new Error('Installation failed: no font files were installed.');
   rmdir(workDir);
 
-  done();
+  const installedDir = isMacOS ? userFontsDirMacOS : isLinux ? userFontsDirLinux : installed;
+  done(`Installation summary: ${name}\nInstalled files: ${fontFiles.length}\nLocation: ${installedDir}\n${fontFiles.map(file => '  - ' + path.basename(file)).sort().join('\n')}`);
   return true;
 };

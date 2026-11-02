@@ -33,6 +33,7 @@ What would you like to do?
 
 - Type to filter the font catalogue, use ↑/↓ to choose a font, and press Enter to select it.
 - Confirm installation to download and install the font. Progress and results appear before the menu returns.
+- Installation logs retain each downloaded filename and temporary storage path. A final summary lists every installed font file and its installation directory.
 - Configure an optional Google Fonts API key through a masked prompt, or use the default catalogue without a key.
 - Press Escape or Ctrl+C to cancel a prompt; Ctrl+C also stops a running operation.
 
@@ -99,9 +100,9 @@ Fonts install for the current user on macOS, Linux, and Windows.
 | Linux | `$HOME/.ggfonts` | `$HOME/.local/share/fonts` |
 | Windows | `%USERPROFILE%\AppData\Local\ggfonts` | `%LOCALAPPDATA%\Microsoft\Windows\Fonts` |
 
-Linux uses the same user font directory across distributions and refreshes the fontconfig cache with `fc-cache -f` when available. On Windows, fonts are registered for the current user; if per-user installation is unavailable, the installer falls back to system-wide installation in `%WINDIR%\Fonts`, which may require administrator approval.
+Linux uses the same user font directory across distributions and refreshes the fontconfig cache with `fc-cache -f` when available. On Windows, fonts are registered for the current user; if per-user installation is incomplete or unavailable, the installer falls back to system-wide installation in `%WINDIR%\Fonts`, which requires an elevated terminal. A failed installation keeps the downloaded fonts for manual installation.
 
-Downloads use a temporary `tmp` directory inside the configuration directory. Scratch files are removed after a successful installation. Restart applications if newly installed fonts do not appear immediately.
+Downloads use Google's file list to retrieve TTF/OTF files, including variants in nested directories. If the file list is unavailable, the CLI tries the ZIP endpoint and extracts the archive. Fonts are placed directly in the OS font directory. Downloads use a temporary `tmp` directory inside the configuration directory. Scratch files are removed after a successful installation. Restart applications if newly installed fonts do not appear immediately; Windows may require signing out and back in for registry changes to take effect.
 
 ## Development
 
