@@ -14,14 +14,15 @@ import time
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
-def check(name, steps, install=False):
+def check(name, steps, install=False, network=None, initial_text='Choose a font (Esc/Ctrl+C to exit)'):
     with tempfile.TemporaryDirectory(prefix="ggfonts pty José's home-") as home:
         data = pathlib.Path(home) / '.ggfonts'
         pid, fd = pty.fork()
         if pid == 0:
             os.chdir(ROOT)
-            env = dict(os.environ, HOME=home, TERM='xterm-256color', NO_COLOR='1', FORCE_COLOR='0')
-            env['GGFONTS_NETWORK'] = 'nested' if install else 'success'
+            env = dict(os.environ, HOME=home, TERM='xterm-256color', FORCE_COLOR='1')
+            env.pop('NO_COLOR', None)
+            env['GGFONTS_NETWORK'] = network or ('nested' if install else 'success')
             args = ['node', '--require', './test/fixtures/network.cjs', 'index.js']
             os.execvpe('node', args, env)
         fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack('HHHH', 24, 90, 0, 0))
@@ -42,7 +43,7 @@ def check(name, steps, install=False):
                 assert time.monotonic() < deadline, (name, text, output[-2000:])
 
         try:
-            expect('Choose a font (Esc/Ctrl+C to exit)')
+            expect(initial_text)
             for keys, expected in steps:
                 mark = len(output)
                 os.write(fd, keys)
@@ -55,8 +56,12 @@ def check(name, steps, install=False):
                     break
                 assert time.monotonic() < deadline, (name, 'did not exit', output[-2000:])
             assert os.waitstatus_to_exitcode(status) == 0, output[-2000:]
+            clean = re.sub(r'\x1b\[[0-?]*[ -/]*[@-~]', '', output)
+            assert clean.count('See you next time!') == 1, clean[-4000:]
+            assert 'Cancelled.' not in clean, clean[-4000:]
+            exit_line = next(line for line in output.splitlines() if 'See you next time!' in line)
+            assert '\x1b[31m' not in exit_line, exit_line
             if install:
-                clean = re.sub(r'\x1b\[[0-?]*[ -/]*[@-~]', '', output)
                 assert 'Downloading ' not in clean, clean[-4000:]
                 assert 'Downloaded ' not in clean, clean[-4000:]
                 assert 'Stored at:' not in clean, clean[-4000:]
@@ -65,6 +70,10 @@ def check(name, steps, install=False):
                 assert '  - FiraCode-Bold.OTF' in clean, clean[-4000:]
                 assert '  - FiraCode.ttf' in clean, clean[-4000:]
                 assert not list((data / 'tmp').iterdir())
+            elif network == 'slow':
+                fonts = pathlib.Path(home) / ('Library/Fonts' if os.uname().sysname == 'Darwin' else '.local/share/fonts')
+                assert not fonts.exists()
+                assert 'Installation summary:' not in clean, clean[-4000:]
             else:
                 assert not data.exists()
             print(f'PASS: {name}')
@@ -77,17 +86,25 @@ def check(name, steps, install=False):
             os.close(fd)
 
 
-check('picker Ctrl+C', [(b'\x03', 'Cancelled.')])
-check('picker Escape', [(b'\x1b', 'Cancelled.')])
+check('picker Ctrl+C', [(b'\x03', 'See you next time!')])
+check('picker Escape', [(b'\x1b', 'See you next time!')])
 check('filter, arrow selection, decline, exit', [
     (b'Fira', 'Search: Fira'), (b'\x1b[B\r', 'Install Fira Mono'),
-    (b'\x1b[C\r', 'Choose a font'), (b'\x1b', 'Cancelled.')
+    (b'\x1b[C\r', 'Choose a font'), (b'\x1b', 'See you next time!')
 ])
 check('no matches stays in picker', [
     (b'zzzz-no-font', 'No matches found'),
-    (b'\r', 'Choose a font from the list.'), (b'\x03', 'Cancelled.')
+    (b'\r', 'Choose a font from the list.'), (b'\x03', 'See you next time!')
 ])
 check('Enter installs by default, shows only the report, and returns to the picker', [
     (b'Fira Code\r', 'Install Fira Code'),
-    (b'\r', 'Choose a font'), (b'\x1b', 'Cancelled.')
+    (b'\r', 'Choose a font'), (b'\x1b', 'See you next time!')
 ], install=True)
+
+check('Ctrl+C during catalogue loading exits normally', [
+    (b'\x03', 'See you next time!')
+], network='catalogue-slow', initial_text='Fetching font catalogue')
+check('Ctrl+C during installation exits normally', [
+    (b'Fira Code\r', 'Install Fira Code'),
+    (b'\r', 'Installing Fira Code'), (b'\x03', 'See you next time!')
+], network='slow')

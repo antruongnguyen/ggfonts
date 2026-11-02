@@ -4,11 +4,20 @@ import { downloadFont, getFonts } from './fonts.js';
 import log from './log.js';
 
 async function withProgress(message, successMessage, action, detailed = false) {
-  const progress = detailed
+  let progress;
+  const cancel = () => process.exit(0);
+  const onExit = code => {
+    if (code === 0) {
+      if (!detailed) progress?.clear();
+      p.outro('See you next time!');
+    }
+  };
+  // Clack's input blocker can exit directly instead of emitting SIGINT.
+  process.once('exit', onExit);
+  process.once('SIGINT', cancel);
+  progress = detailed
     ? p.taskLog({ title: message })
-    : p.spinner({ onCancel: () => process.exit(0) });
-  const cancel = () => { p.cancel('Cancelled.'); process.exit(0); };
-  if (detailed) process.once('SIGINT', cancel);
+    : p.spinner({ cancelMessage: '', onCancel: cancel });
   const messages = [];
   let summary;
   log.setReporter({
@@ -36,7 +45,8 @@ async function withProgress(message, successMessage, action, detailed = false) {
     progress.error(err.message);
     throw err;
   } finally {
-    if (detailed) process.removeListener('SIGINT', cancel);
+    process.removeListener('exit', onExit);
+    process.removeListener('SIGINT', cancel);
     log.setReporter(p.log);
     for (const [level, msg] of messages) p.log[level](msg);
   }
@@ -47,7 +57,7 @@ export default async function runInteractive() {
   log.setReporter(p.log);
   const cancelled = value => {
     if (!p.isCancel(value)) return false;
-    p.cancel('Cancelled.');
+    p.outro('See you next time!');
     return true;
   };
 

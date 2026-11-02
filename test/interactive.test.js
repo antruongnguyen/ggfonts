@@ -11,6 +11,8 @@ test('startup opens the font picker directly with an exit hint', t => {
   assert.match(result.output, /Esc.*Ctrl\+C.*exit/);
   assert.doesNotMatch(result.output, /What would you like to do/);
   assert.match(result.output, /Font catalogue ready/);
+  assert.match(result.output, /See you next time!/);
+  assert.doesNotMatch(result.output, /Cancelled\./);
   assert.equal(fs.existsSync(result.dataDir), false);
 });
 
@@ -18,7 +20,8 @@ test('cancelling confirmation leaves the filesystem untouched', t => {
   const result = run(t, [], { answers: ['Fira Code', '__CANCEL__'] });
   assert.equal(result.status, 0, result.output);
   assert.match(result.output, /Install Fira Code/);
-  assert.match(result.output, /Cancelled/);
+  assert.match(result.output, /See you next time!/);
+  assert.doesNotMatch(result.output, /Cancelled\./);
   assert.equal(fs.existsSync(result.dataDir), false);
 });
 

@@ -66,12 +66,13 @@ https.get = (url, callback) => {
       };
     }
     callback(response);
-  }, 20);
+  }, scenario === 'slow' ? 5000 : 20);
   return request;
 };
 
 global.fetch = async url => {
   if (String(url) === 'https://fonts.google.com/metadata/fonts') {
+    if (scenario === 'catalogue-slow') await new Promise(resolve => setTimeout(resolve, 5000));
     if (scenario === 'catalogue-network') throw new Error('Catalogue unavailable');
     if (scenario === 'catalogue-http') return { ok: false, status: 503, statusText: 'Service Unavailable' };
     if (scenario === 'catalogue-invalid') return { ok: true, text: async () => '<html>Not a catalogue</html>' };

@@ -35,6 +35,8 @@ Choose a font (Esc/Ctrl+C to exit)
 3. At the installation prompt, **Yes is selected by default**. Press Enter to install, or use ←/→ to choose No and return to the picker.
 4. Read the installation report, then search for another family or press Escape/Ctrl+C to exit.
 
+Intentional exits show a normal **See you next time!** message and return a successful exit status. Ctrl+C during loading or installation uses the same exit message.
+
 | Key | Action |
 | --- | --- |
 | Type / Backspace | Edit the search query |

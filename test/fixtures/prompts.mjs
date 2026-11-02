@@ -10,10 +10,10 @@ export const autocomplete = answer;
 export const confirm = answer;
 export const isCancel = value => typeof value === 'symbol';
 export const intro = console.log;
-export const cancel = console.log;
+export const outro = console.log;
 export const log = { info: console.log, message: console.log, warn: console.log, error: console.log, success: console.log };
 export const spinner = () => ({
-  start: console.log, stop: console.log, message: () => {}, error: console.log
+  start: console.log, stop: console.log, message: () => {}, error: console.log, clear: () => {}
 });
 export const taskLog = ({ title }) => {
   console.log(title);
