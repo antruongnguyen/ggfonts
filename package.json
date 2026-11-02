@@ -1,7 +1,7 @@
 {
   "name": "ggfonts",
   "type": "module",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "A CLI tool to search and install Google Fonts",
   "main": "index.js",
   "engines": {
@@ -10,13 +10,12 @@
   "bin": {
     "ggfonts": "index.js"
   },
+  "files": [
+    "index.js",
+    "src/"
+  ],
   "scripts": {
-    "test-update": "npx . update",
-    "test-config": "npx . config -k AN_INVALID_API_KEY",
-    "test-config-default": "npx . config",
-    "test-install": "npx . install rains",
-    "test-search": "npx . search fira",
-    "test": "node --test test/cli.test.js"
+    "test": "node --test test/cli.test.js test/interactive.test.js test/download.test.js test/install.test.js"
   },
   "keywords": [
     "font",
@@ -34,7 +33,6 @@
   "license": "MIT",
   "dependencies": {
     "@clack/prompts": "^1.8.1",
-    "adm-zip": "^0.6.1",
     "commander": "^14.0.3",
     "fuzzy-search": "^3.2.1",
     "picocolors": "^1.1.1"
